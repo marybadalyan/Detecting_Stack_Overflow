@@ -16,7 +16,7 @@ void testArraySize(size_t sizeInMB) {
 }
 
 int main() {
-    size_t sizeMB = 1;
+    size_t sizeMB = 0.1;
     while (true) {
         testArraySize(sizeMB);
         sizeMB *= 2; // Double the size
