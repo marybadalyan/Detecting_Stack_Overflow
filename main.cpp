@@ -1,25 +1,20 @@
 #include <iostream>
+#include <cstdlib>
+#include <windows.h>  // For Sleep
 
 void testArraySize(size_t sizeInMB) {
-    const int size = sizeInMB * 1024 * 1024 / sizeof(int); // Convert MB to element count
-
-    std::cout << "Trying to allocate " << sizeInMB << "MB on stack... ";
-
-    // Use volatile to prevent optimization
-    volatile int* arr = (int*)alloca(size * sizeof(int));
-    
-    // Do something with arr to prevent unused warning
+    size_t count = sizeInMB * 1024 * 1024 / sizeof(int);
+    volatile int* arr = (int*)_alloca(count * sizeof(int)); // MSVC version of alloca
     arr[0] = 1;
-    arr[size - 1] = 1;
-
-    std::cout << "Success!\n";
+    arr[count - 1] = 1;
 }
 
 int main() {
-    size_t sizeMB = 0.5;
-    while (true) {
+    for (size_t sizeMB = 1;; sizeMB *= 2) {
+        std::cout << "Trying " << sizeMB << "MB..." << std::endl;
+        Sleep(200); // To see output before crash
         testArraySize(sizeMB);
-        sizeMB *= 2; // Double the size
+        std::cout << "Success\n";
     }
 
     return 0;
