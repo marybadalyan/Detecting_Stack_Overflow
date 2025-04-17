@@ -41,9 +41,7 @@ bool testArraySize(size_t sizeBytes) {
             std::cout << "Stack overflow at " << sizeBytes << " bytes!" << std::endl;
             return false; // Signal failure to stop loop
         }
-    #else
-
-    #endif
+   #endif
 }
 
 int main() {
@@ -57,7 +55,9 @@ int main() {
             std::cout << "Program terminated due to stack overflow." << std::endl;
             break;
         }
-        Sleep(200); 
+        #ifdef _WIN32
+            Sleep(200);
+        #endif  
         sizeBytes = static_cast<size_t>(sizeBytes * 1.5); // Gradual increase
     }
 
