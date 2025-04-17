@@ -19,19 +19,19 @@ int StackSize(){
         std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
         return stackSize;
     #else
-        struct rlimit rl;
-        if (getrlimit(RLIMIT_STACK, &rl) == 0) {
-            if (rl.rlim_cur == RLIM_INFINITY) {
-                std::cout << "Stack size (Linux): Unlimited\n";
-            } else {
-                std::cout << "Stack size (Linux): " << rl.rlim_cur / 1024 << " KB "
-                        << "(Max: " << rl.rlim_max / 1024 << " KB)\n";
-            }
-            return static_cast<long>(rl.rlim_cur);
+    struct rlimit rl;
+    if (getrlimit(RLIMIT_STACK, &rl) == 0) {
+        if (rl.rlim_cur == RLIM_INFINITY) {
+            std::cout << "Stack size (Linux): Unlimited\n";
         } else {
-            std::cerr << "Failed to get stack size: " << std::strerror(errno) << "\n";
-            return -1; // Indicate error
+            std::cout << "Stack size (Linux): " << rl.rlim_cur / 1024 << " KB "
+                      << "(Max: " << rl.rlim_max / 1024 << " KB)\n";
         }
+        return static_cast<long>(rl.rlim_cur);
+    } else {
+        std::cerr << "Failed to get stack size: " << std::strerror(errno) << "\n";
+        return -1; // Indicate error
+    }
     #endif
 
     return 0;
