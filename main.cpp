@@ -19,7 +19,7 @@ int StackSize(){
         return stackSize;
     #else
         rlimit rl;
-        getrlimit(RLIMIT_STACK, &rl);
+        std::cout << "Stack size (Windows): " << getrlimit(RLIMIT_STACK, &rl)<< " KB\n"; 
     #endif
 
     return 0;
