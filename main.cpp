@@ -13,45 +13,37 @@ int StackSize(){
 
     #ifdef _WIN32
         // On Windows, you need to read the TIB (Thread Information Block)
-        // This gets the stack base and limits for the current thread.
         NT_TIB* tib = (NT_TIB*)NtCurrentTeb();
         SIZE_T stackSize = (SIZE_T)tib->StackBase - (SIZE_T)tib->StackLimit;
         std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
         return stackSize;
     #else
-    struct rlimit rl;
-    if (getrlimit(RLIMIT_STACK, &rl) == 0) {
-        if (rl.rlim_cur == RLIM_INFINITY) {
-            std::cout << "Stack size (Linux): Unlimited\n";
-        } else {
-            std::cout << "Stack size (Linux): " << rl.rlim_cur / 1024 << " KB "
-                      << "(Max: " << rl.rlim_max / 1024 << " KB)\n";
-        }
-        return static_cast<long>(rl.rlim_cur);
-    } else {
-        std::cerr << "Failed to get stack size: " << std::strerror(errno) << "\n";
-        return -1; // Indicate error
-    }
+        rlimit rl;
+        getrlimit(RLIMIT_STACK, &rl);
     #endif
 
     return 0;
 }
-
 bool testArraySize(size_t sizeBytes) {
     const size_t count = sizeBytes / sizeof(int); // Bytes to number of ints
-    
-    __try {
-        volatile int* arr = (int*)_malloca(count * sizeof(int));
-        arr[0] = 1;  
-        arr[count - 1] = 1;  
-        std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
-        return true;
-    }
-    __except (GetExceptionCode() == EXCEPTION_STACK_OVERFLOW ? 
-              EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) {
-        std::cout << "Stack overflow at " << sizeBytes << " bytes!" << std::endl;
-        return false; // Signal failure to stop loop
-    }
+    #ifdef _WIN32
+        __try { // Structured Exception Handling
+            volatile int* arr = (int*)_malloca(count * sizeof(int));
+            arr[0] = 1;  
+            arr[count - 1] = 1;  
+            std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
+            return true;
+        }
+        __except (GetExceptionCode() == EXCEPTION_STACK_OVERFLOW ? 
+                EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) { 
+                    // Only catch and handle the exception if it’s a stack overflow. 
+                    // If it’s anything else, just ignore this handler and let the system handle it (or crash)
+            std::cout << "Stack overflow at " << sizeBytes << " bytes!" << std::endl;
+            return false; // Signal failure to stop loop
+        }
+    #else
+
+    #endif
 }
 
 int main() {
