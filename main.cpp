@@ -47,7 +47,6 @@ void setup_segfault_handler() {
     sa.sa_flags = SA_SIGINFO;
     sa.sa_sigaction = [](int sig, siginfo_t*, void*) {
         const char* msg = "Segmentation fault detected (probably a stack overflow).\n";
-        write(STDERR_FILENO, msg, strlen(msg)); // Safe in signal handler
         _exit(EXIT_FAILURE); // use _exit to avoid flushing corrupted stack
     };
     sigemptyset(&sa.sa_mask);
