@@ -18,8 +18,12 @@ int StackSize(){
         std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
         return stackSize;
     #else
-        rlimit rl;
-        std::cout << "Stack size (Windows): " << getrlimit(RLIMIT_STACK, &rl)<< " KB\n"; 
+        struct rlimit rl;
+        if (getrlimit(RLIMIT_STACK, &rl) == 0) {
+            std::cout << "Stack size (Linux): " << (rl.rlim_cur / (1024 * 1024)) << " MB\n";
+        } else {
+            std::perror("getrlimit");
+        }
     #endif
 
     return 0;
