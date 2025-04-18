@@ -9,7 +9,8 @@
     #include <stdlib.h>
     #include <signal.h>
     #include <setjmp.h>
-    #include <malloc.h>  
+    #include <malloc.h>
+    #include <sys/resource.h>   
     volatile sig_atomic_t segfault_received = 0;
 
     void segfault_handler(int sig, siginfo_t *si, void *unused) {
