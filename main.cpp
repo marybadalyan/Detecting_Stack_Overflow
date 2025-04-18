@@ -38,16 +38,13 @@ bool testArraySize(size_t sizeBytes) {
 
 #ifndef _WIN32
 void setup_segfault_handler() {
-    // Prevent core dumps
     struct rlimit core_limit = {0, 0};
     setrlimit(RLIMIT_CORE, &core_limit);
 
-    // Set up signal handler
     struct sigaction sa;
     sa.sa_flags = SA_SIGINFO;
-    sa.sa_sigaction = [](int sig, siginfo_t*, void*) {
-        const char* msg = "Segmentation fault detected (probably a stack overflow).\n";
-        _exit(EXIT_FAILURE); // use _exit to avoid flushing corrupted stack
+    sa.sa_sigaction = [](int, siginfo_t*, void*) {
+        _exit(EXIT_FAILURE); // Just exit silently
     };
     sigemptyset(&sa.sa_mask);
     sigaction(SIGSEGV, &sa, nullptr);
