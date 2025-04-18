@@ -10,11 +10,17 @@
     #include <signal.h>
     #include <malloc.h>
     #include <sys/resource.h>   
+
+    struct rlimit core_limit;
+    core_limit.rlim_cur = 0;
+    core_limit.rlim_max = 0;
+    setrlimit(RLIMIT_CORE, &core_limit);
+
     volatile sig_atomic_t segfault_received = 0;
 
     void segfault_handler(int sig, siginfo_t *si, void *unused) {
         std::cout << "Stack overflow detected!" << std::endl;
-        abort(); // Abort immediately after detecting stack overflow
+        exit(EXIT_FAILURE); 
     }
 
 #endif
@@ -67,7 +73,7 @@ int StackSize(){
         // Thread Information Block
         NT_TIB* tib = (NT_TIB*)NtCurrentTeb();
         SIZE_T stackSize = (SIZE_T)tib->StackBase - (SIZE_T)tib->StackLimit;
-        std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
+        std::cout << "Stack size (Windows): " << stackSize / (1024 * 1024) << " KB\n";
         return stackSize;
     #else
         struct rlimit rl;
