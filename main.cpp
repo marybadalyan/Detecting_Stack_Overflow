@@ -9,6 +9,8 @@
     #include <stdlib.h>
     #include <signal.h>
     #include <malloc.h>
+    #include <unistd.h> //rw
+    #include <cstring> // for strlen
     #include <sys/resource.h>   
 
 #endif
@@ -86,7 +88,7 @@ int main() {
     #ifndef _WIN32
     setup_segfault_handler(); // Linux only
     #endif
-    
+
     size_t startSize = 100;  
     size_t maxSize = StackSize() * sizeof(int);
     size_t sizeBytes = startSize;
