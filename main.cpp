@@ -11,11 +11,6 @@
     #include <malloc.h>
     #include <sys/resource.h>   
 
-    struct rlimit core_limit;
-    core_limit.rlim_cur = 0;
-    core_limit.rlim_max = 0;
-    setrlimit(RLIMIT_CORE, &core_limit);
-
     volatile sig_atomic_t segfault_received = 0;
 
     void segfault_handler(int sig, siginfo_t *si, void *unused) {
@@ -44,6 +39,12 @@ bool testArraySize(size_t sizeBytes) {
                     return false; // Signal failure to stop loop
         }
     #else
+
+        // Prevent core dumps
+        struct rlimit core_limit;
+        core_limit.rlim_cur = 0;
+        core_limit.rlim_max = 0;
+        setrlimit(RLIMIT_CORE, &core_limit);
         static size_t totalAllocated = 0;
 
         struct sigaction sa;
