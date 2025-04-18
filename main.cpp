@@ -64,8 +64,6 @@ bool testArraySize(size_t sizeBytes) {
         sigemptyset(&sa.sa_mask);
         sigaction(SIGSEGV, &sa, NULL); // Actually registers the signal handler with the kernel.
 
-        const size_t count = sizeBytes / sizeof(int);
-
         volatile int* arr = (int*)alloca(count * sizeof(int));
 
         arr[0] = 1;
