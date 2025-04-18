@@ -9,7 +9,6 @@
     #include <stdlib.h>
     #include <signal.h>
     #include <setjmp.h>
-    #define _GNU_SOURCE
     #include <malloc.h>  
     volatile sig_atomic_t segfault_received = 0;
 
@@ -18,13 +17,11 @@
         exit(EXIT_FAILURE); 
     }
 
-    
 #endif
 
 int StackSize(){
-
     #ifdef _WIN32
-        // On Windows, you need to read the TIB (Thread Information Block)
+        // Thread Information Block
         NT_TIB* tib = (NT_TIB*)NtCurrentTeb();
         SIZE_T stackSize = (SIZE_T)tib->StackBase - (SIZE_T)tib->StackLimit;
         std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
@@ -40,8 +37,10 @@ int StackSize(){
 
     return 0;
 }
-bool testArraySize(size_t sizeBytes,int sig = 0) {
+
+bool testArraySize(size_t sizeBytes) {
     const size_t count = sizeBytes / sizeof(int); // Bytes to number of ints
+
     #ifdef _WIN32
         __try { // Structured Exception Handling
             volatile int* arr = (int*)_malloca(count * sizeof(int));
@@ -52,26 +51,23 @@ bool testArraySize(size_t sizeBytes,int sig = 0) {
         }
         __except (GetExceptionCode() == EXCEPTION_STACK_OVERFLOW ? 
                 EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH) { 
-                    // Only catch and handle the exception if it’s a stack overflow. 
-                    // If it’s anything else, just ignore this handler and let the system handle it (or crash)
-            std::cout << "Stack overflow at " << sizeBytes << " bytes!" << std::endl;
-            return false; // Signal failure to stop loop
+                    std::cout << "Stack overflow at " << sizeBytes << " bytes!" << std::endl;
+                    return false; // Signal failure to stop loop
         }
     #else
         struct sigaction sa;
         sa.sa_flags = SA_SIGINFO; // enables you to get detailed signal info
-        sa.sa_sigaction = segfault_handler; //Sets the  signal handler function to call when the signal occurs.
+        sa.sa_sigaction = segfault_handler; // Sets the signal handler function to call when the signal occurs.
         sigemptyset(&sa.sa_mask); 
-        sigaction(SIGSEGV, &sa, NULL); //actually registers the signal handler with the kernel.
+        sigaction(SIGSEGV, &sa, NULL); // Actually registers the signal handler with the kernel.
 
-        signal(SIGSEGV, handler);
-        volatile int* arr = (int*)_malloca(count * sizeof(int));
+        volatile int* arr = (int*)malloc(count * sizeof(int));  
         arr[0] = 1;  
         arr[count - 1] = 1;  
         std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
         
         return segfault_received;
-   #endif
+    #endif
 }
 
 int main() {
@@ -85,12 +81,14 @@ int main() {
             std::cout << "Program terminated due to stack overflow." << std::endl;
             break;
         }
+        
         #ifdef _WIN32
             Sleep(200);
         #else
-            sleep 200
+            sleep(200); 
         #endif  
-        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); // Gradual increase
+        
+        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); 
     }
     
     return 0;
