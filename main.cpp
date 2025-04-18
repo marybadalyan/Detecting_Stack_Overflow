@@ -31,8 +31,10 @@ int StackSize(){
         struct rlimit rl;
         if (getrlimit(RLIMIT_STACK, &rl) == 0) {
             std::cout << "Stack size (Linux): " << (rl.rlim_cur / (1024 * 1024)) << " MB\n";
+            return rl.rlim_cur;  // ✅ RETURN actual value
         } else {
             std::perror("getrlimit");
+            return 0;
         }
     #endif
 
@@ -55,26 +57,24 @@ bool testArraySize(size_t sizeBytes) {
                     std::cout << "Stack overflow at " << sizeBytes << " bytes!" << std::endl;
                     return false; // Signal failure to stop loop
         }
-        #else
-        struct sigaction sa;
-        sa.sa_flags = SA_SIGINFO;
-        sa.sa_sigaction = segfault_handler;
+    #else
+        struct sigaction sa; // signal handling API
+        sa.sa_flags = SA_SIGINFO; // enables you to get detailed signal info
+        sa.sa_sigaction = segfault_handler; // Sets the signal handler function to call when the signal occurs.
         sigemptyset(&sa.sa_mask);
-        sigaction(SIGSEGV, &sa, NULL); 
-    
-        volatile int* arr = (int*)malloc(count * sizeof(int));
-        if (!arr) {
-            std::cerr << "malloc failed at " << sizeBytes << " bytes" << std::endl;
-            return false;
-        }
-    
-        std::cout << "Trying to write to allocated memory...\n";
+        sigaction(SIGSEGV, &sa, NULL); // Actually registers the signal handler with the kernel.
+
+        const size_t count = sizeBytes / sizeof(int);
+
+        volatile int* arr = (int*)alloca(count * sizeof(int));
+
         arr[0] = 1;
         arr[count - 1] = 1;
-    
+
         std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
-    
-        return segfault_received == 0;  
+
+        return true; 
+        
     #endif
 }
 
