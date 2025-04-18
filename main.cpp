@@ -56,17 +56,17 @@ bool testArraySize(size_t sizeBytes) {
                     return false; // Signal failure to stop loop
         }
     #else
+        volatile int* arr = (int*)malloc(count * sizeof(int));  
+        arr[0] = 1;  
+        arr[count - 1] = 1;  
+        std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
+        
         struct sigaction sa;
         sa.sa_flags = SA_SIGINFO; // enables you to get detailed signal info
         sa.sa_sigaction = segfault_handler; // Sets the signal handler function to call when the signal occurs.
         sigemptyset(&sa.sa_mask); 
         sigaction(SIGSEGV, &sa, NULL); // Actually registers the signal handler with the kernel.
 
-        volatile int* arr = (int*)malloc(count * sizeof(int));  
-        arr[0] = 1;  
-        arr[count - 1] = 1;  
-        std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
-        
         if(segfault_received == 0){
             return false;
         }
