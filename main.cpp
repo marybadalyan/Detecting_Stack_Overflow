@@ -67,7 +67,10 @@ bool testArraySize(size_t sizeBytes) {
         arr[count - 1] = 1;  
         std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
         
-        return segfault_received;
+        if(segfault_received == 0){
+            return false;
+        }
+        else return true;
     #endif
 }
 
