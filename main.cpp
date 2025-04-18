@@ -73,9 +73,8 @@ int main() {
         setup_segfault_handler();
     #endif
     
-        // Stack guard space to protect signal handler context
-        volatile char stack_guard[1024]; 
-        (void)stack_guard;
+        volatile char stack_guard[1024];  // the signal handler itself uses stack space we have to make sure it exists.
+        (void)stack_guard; // Avoids compiler warning for unused variable
     
         size_t startSize = 100;
         size_t maxSize = StackSize();
