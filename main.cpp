@@ -14,28 +14,12 @@
 
     void segfault_handler(int sig, siginfo_t *si, void *unused) {
         std::cout << "Stack overflow detected!" << std::endl;
-        exit(EXIT_FAILURE); // Exit after detecting stack overflow
+        abort(); // Abort immediately after detecting stack overflow
     }
 
 #endif
 
-int StackSize(){
-    #ifdef _WIN32
-        // Thread Information Block
-        NT_TIB* tib = (NT_TIB*)NtCurrentTeb();
-        SIZE_T stackSize = (SIZE_T)tib->StackBase - (SIZE_T)tib->StackLimit;
-        std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
-        return stackSize;
-    #else
-        struct rlimit rl;
-        if (getrlimit(RLIMIT_STACK, &rl) == 0) {
-            std::cout << "Stack size (Linux): " << (rl.rlim_cur / 1024) << " KB\n";
-            return rl.rlim_cur;
-        }
-    #endif
 
-    return 0;
-}
 
 bool testArraySize(size_t sizeBytes) {
     const size_t count = sizeBytes / sizeof(int); // Bytes to number of ints
@@ -77,8 +61,27 @@ bool testArraySize(size_t sizeBytes) {
     #endif
 }
 
+
+int StackSize(){
+    #ifdef _WIN32
+        // Thread Information Block
+        NT_TIB* tib = (NT_TIB*)NtCurrentTeb();
+        SIZE_T stackSize = (SIZE_T)tib->StackBase - (SIZE_T)tib->StackLimit;
+        std::cout << "Stack size (Windows): " << stackSize / 1024 << " KB\n";
+        return stackSize;
+    #else
+        struct rlimit rl;
+        if (getrlimit(RLIMIT_STACK, &rl) == 0) {
+            std::cout << "Stack size (Linux): " << (rl.rlim_cur / 1024) << " KB\n";
+            return rl.rlim_cur;
+        }
+    #endif
+
+    return 0;
+}
+
 int main() {
-    size_t startSize = 100 * 1024;  // Start with 100 KB allocation
+    size_t startSize = 100;  
     size_t maxSize = StackSize() * sizeof(int);
     size_t sizeBytes = startSize;
 
@@ -89,7 +92,7 @@ int main() {
             break;
         }
         
-        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); // Increase allocation size by 50% 
+        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); 
     }
     
     return 0;
