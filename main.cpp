@@ -14,8 +14,8 @@
     volatile sig_atomic_t segfault_received = 0;
 
     void segfault_handler(int sig, siginfo_t *si, void *unused) {
-        segfault_received += 1;
-        exit(EXIT_FAILURE); 
+        std::cout << "Stack overflow detected!" << std::endl;
+        exit(EXIT_FAILURE); // Terminate the program after detecting stack overflow
     }
 
 #endif
@@ -30,11 +30,8 @@ int StackSize(){
     #else
         struct rlimit rl;
         if (getrlimit(RLIMIT_STACK, &rl) == 0) {
-            std::cout << "Stack size (Linux): " << (rl.rlim_cur /1024) << " KB\n";
-            return rl.rlim_cur;  
-        } else {
-            std::perror("getrlimit");
-            return 0;
+            std::cout << "Stack size (Linux): " << (rl.rlim_cur / 1024) << " KB\n";
+            return rl.rlim_cur;
         }
     #endif
 
@@ -63,14 +60,14 @@ bool testArraySize(size_t sizeBytes) {
         struct sigaction sa;
         sa.sa_flags = SA_SIGINFO;
         sa.sa_sigaction = [](int sig, siginfo_t*, void*) {
-            std::cout << "Stack overflow at this size!" << std::endl;
-            siglongjmp(jumpBuffer, 1);
+            std::cout << "Stack overflow detected!" << std::endl;
+            siglongjmp(jumpBuffer, 1); // Jump back to the saved state
         };
         sigemptyset(&sa.sa_mask);
         sigaction(SIGSEGV, &sa, nullptr);
 
         if (sigsetjmp(jumpBuffer, 1) != 0) {
-            // We got a stack overflow
+            // We got a stack overflow, so return false to exit the loop
             return false;
         }
 
