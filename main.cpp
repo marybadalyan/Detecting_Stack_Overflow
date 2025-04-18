@@ -8,14 +8,13 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <signal.h>
-    #include <setjmp.h>
     #include <malloc.h>
     #include <sys/resource.h>   
     volatile sig_atomic_t segfault_received = 0;
 
     void segfault_handler(int sig, siginfo_t *si, void *unused) {
         std::cout << "Stack overflow detected!" << std::endl;
-        exit(EXIT_FAILURE); // Terminate the program after detecting stack overflow
+        exit(EXIT_FAILURE); // Exit after detecting stack overflow
     }
 
 #endif
@@ -55,25 +54,23 @@ bool testArraySize(size_t sizeBytes) {
                     return false; // Signal failure to stop loop
         }
     #else
-        static sigjmp_buf jumpBuffer;
+        static size_t totalAllocated = 0;
 
         struct sigaction sa;
         sa.sa_flags = SA_SIGINFO;
         sa.sa_sigaction = [](int sig, siginfo_t*, void*) {
-            std::cout << "Stack overflow detected!" << std::endl;
-            siglongjmp(jumpBuffer, 1); // Jump back to the saved state
+            std::cout << "Stack overflow detected! Total allocated: " << totalAllocated << " bytes" << std::endl;
+            exit(EXIT_FAILURE); // Exit immediately after detection
         };
         sigemptyset(&sa.sa_mask);
         sigaction(SIGSEGV, &sa, nullptr);
 
-        if (sigsetjmp(jumpBuffer, 1) != 0) {
-            // We got a stack overflow, so return false to exit the loop
-            return false;
-        }
-
-        volatile int* arr = (int*)alloca(count * sizeof(int));
+        // Allocate memory and check for stack overflow
+        volatile int arr[count]; // Local array on the stack
         arr[0] = 1;
         arr[count - 1] = 1;
+
+        totalAllocated += sizeBytes; // Track total allocated bytes
 
         std::cout << "Allocated " << sizeBytes << " bytes" << std::endl;
         return true;
