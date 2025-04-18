@@ -78,7 +78,7 @@ bool testArraySize(size_t sizeBytes) {
 }
 
 int main() {
-    size_t startSize = 100;  
+    size_t startSize = 100 * 1024;  // Start with 100 KB allocation
     size_t maxSize = StackSize() * sizeof(int);
     size_t sizeBytes = startSize;
 
@@ -89,13 +89,7 @@ int main() {
             break;
         }
         
-        #ifdef _WIN32
-            Sleep(200);
-        #else
-            sleep(200); 
-        #endif  
-        
-        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); 
+        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); // Increase allocation size by 50% 
     }
     
     return 0;
