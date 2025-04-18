@@ -67,23 +67,28 @@ int StackSize() {
     return 0;
 }
 
+
 int main() {
     #ifndef _WIN32
         setup_segfault_handler();
     #endif
-
-    size_t startSize = 100;  
-    size_t maxSize = StackSize() * sizeof(int);
-    size_t sizeBytes = startSize;
-
-    while (sizeBytes <= maxSize) {
-        std::cout << "Trying " << sizeBytes << " bytes..." << std::endl;
-        if (!testArraySize(sizeBytes)) {
-            std::cout << "Program terminated due to stack overflow." << std::endl;
-            break;
+    
+        // Stack guard space to protect signal handler context
+        volatile char stack_guard[1024]; 
+        (void)stack_guard;
+    
+        size_t startSize = 100;
+        size_t maxSize = StackSize();
+        size_t sizeBytes = startSize;
+    
+        while (sizeBytes <= maxSize) {
+            std::cout << "Trying " << sizeBytes << " bytes..." << std::endl;
+            if (!testArraySize(sizeBytes)) {
+                std::cout << "Program terminated due to stack overflow." << std::endl;
+                break;
+            }
+            sizeBytes = static_cast<size_t>(sizeBytes * 1.5);
         }
-        sizeBytes = static_cast<size_t>(sizeBytes * 1.5); // Increase by 1.5x
+    
+        return 0;
     }
-
-    return 0;
-}
