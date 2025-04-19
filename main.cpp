@@ -60,7 +60,7 @@ int StackSize() {
     #else
         struct rlimit rl;
         if (getrlimit(RLIMIT_STACK, &rl) == 0) {
-            std::cout << "Stack size (Linux): " << (rl.rlim_cur / (1024*1024)) << " KB\n";
+            std::cout << "Stack size (Linux): " << (rl.rlim_cur / (1024*1024)) << " MB\n";
             return static_cast<int>(rl.rlim_cur);
         }
     #endif
